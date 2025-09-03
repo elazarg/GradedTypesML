@@ -1,6 +1,6 @@
 (** Property-based tests for the graded type system *)
+open Graded_types
 
-open Types
 open QCheck
 
 (** Generators *)
