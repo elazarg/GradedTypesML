@@ -13,7 +13,7 @@ let promote r t =
 let same_grade_join t1 t2 =
   match (t1, t2) with
   (* Same base type - idempotent *)
-  | (Base (b1, g), Base (b2, _)) when b1 = b2 -> t1
+  | (Base (b1, _), Base (b2, _)) when b1 = b2 -> t1
   
   (* Different base types - heterogeneous merge *)
   | (Base (_, g), Base (_, _)) -> Any g
@@ -45,4 +45,3 @@ let join_assoc t1 t2 t3 =
 (** Join is idempotent *)
 let join_idemp t =
   type_eq (join t t) t
-  
