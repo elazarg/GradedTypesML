@@ -10,12 +10,12 @@ let iteration_limit = 100
 let rec fixpoint_bounded f env n =
   if n >= iteration_limit then
     (* Widening: jump to Any^∞ for non-stable variables *)
-    Env.map (fun t -> 
+    map (fun t -> 
       if grade_of t = Inf then t else Any Inf
     ) env
   else
     let env' = f env in
-    if Env.equal env env' then env
+    if equal env env' then env
     else fixpoint_bounded f env' (n + 1)
 
 let fixpoint f env = fixpoint_bounded f env 0
@@ -33,9 +33,8 @@ let fixpoint_with_widening k f env =
   let rec iterate env n =
     let env' = f env in
     let env'' = 
-      if n > k then Env.map (widen k) env'
+      if n > k then map (widen k) env'
       else env' in
-    if Env.equal env env'' then env
+    if equal env env'' then env
     else iterate env'' (n + 1)
   in iterate env 0
-  
