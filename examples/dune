@@ -1,4 +1,4 @@
 (test
  (name test)
- (libraries graded_types qcheck-core qcheck-runner)
+ (libraries graded_types qcheck-core qcheck)
  (modules test paper_examples))
