@@ -21,7 +21,6 @@ let grade_leq g1 g2 = match (g1, g2) with
   | (Bot, _) -> true
   | (_, Inf) -> true
   | (Finite i, Finite j) -> i <= j
-  | (Inf, Inf) -> true
   | _ -> false
 
 (** Grade equality *)
