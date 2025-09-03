@@ -1,6 +1,6 @@
 (** Property-based tests for the graded type system *)
 open Graded_types
-
+open Types
 open QCheck
 
 (** Generators *)
@@ -80,6 +80,7 @@ let prop_grade_monotone =
 
 (* Run all tests *)
 let run_tests () =
+  print_endline "--- Running Property-Based Tests ---";
   let tests = [
     prop_subtype_refl;
     prop_subtype_antisym;
@@ -89,6 +90,14 @@ let run_tests () =
     prop_join_lub;
     prop_grade_monotone;
   ] in
-  List.iter (fun test ->
-    QCheck_runner.run_tests ~verbose:true [test] |> ignore
-  ) tests
+  let property_results = QCheck_runner.run_tests ~verbose:true tests in
+
+  print_endline "\n--- Running Paper Examples ---";
+  Paper_examples.run_all ();
+
+  if List.for_all ((=) 0) property_results then
+    exit 0
+  else
+    exit 1
+
+let () = run_tests ()
