@@ -1,5 +1,6 @@
 (** Main driver for the graded type analyzer *)
 
+open Graded_types
 open Printf
 
 let usage = "Usage: graded-typing [options] <file>"
@@ -7,8 +8,6 @@ let usage = "Usage: graded-typing [options] <file>"
 type mode = 
   | Basic      (* Basic analysis *)
   | Ghost      (* With ghost state *)
-  | Test       (* Run tests *)
-  | Examples   (* Run paper examples *)
 
 let mode = ref Basic
 let verbose = ref false
@@ -17,10 +16,6 @@ let input_file = ref ""
 let spec = [
   ("-ghost", Arg.Unit (fun () -> mode := Ghost), 
    "Enable ghost state tracking");
-  ("-test", Arg.Unit (fun () -> mode := Test),
-   "Run test suite");
-  ("-examples", Arg.Unit (fun () -> mode := Examples),
-   "Run paper examples");
   ("-v", Arg.Set verbose, "Verbose output");
 ]
 
@@ -59,41 +54,30 @@ let analyze_ghost stmt =
 let main () =
   Arg.parse spec (fun f -> input_file := f) usage;
   
-  match !mode with
-  | Test ->
-      printf "Running property-based tests...\n";
-      Test.run_tests ()
-      
-  | Examples ->
-      printf "Running paper examples...\n";
-      Examples.run_all ()
-      
-  | Basic | Ghost ->
-      if !input_file = "" then begin
-        eprintf "Error: no input file specified\n";
-        exit 1
-      end;
-      
-      try
-        let input = read_file !input_file in
-        let stmt = Parser.parse input in
-        if !verbose then 
-          printf "Parsed: %s\n\n" (Ast.pp_stmt stmt);
-        
-        match !mode with
-        | Basic -> analyze_basic stmt |> ignore
-        | Ghost -> analyze_ghost stmt |> ignore
-        | _ -> ()
-        
-      with
-      | Parser.Parse_error msg ->
-          eprintf "Parse error: %s\n" msg;
-          exit 1
-      | Sys_error msg ->
-          eprintf "Error: %s\n" msg;
-          exit 1
-      | e ->
-          eprintf "Unexpected error: %s\n" (Printexc.to_string e);
-          exit 1
+  if !input_file = "" then begin
+    eprintf "Error: no input file specified\n";
+    exit 1
+  end;
+  
+  try
+    let input = read_file !input_file in
+    let stmt = Parser.parse input in
+    if !verbose then 
+      printf "Parsed: %s\n\n" (Ast.pp_stmt stmt);
+    
+    match !mode with
+    | Basic -> analyze_basic stmt |> ignore
+    | Ghost -> analyze_ghost stmt |> ignore
+    
+  with
+  | Parser.Parse_error msg ->
+      eprintf "Parse error: %s\n" msg;
+      exit 1
+  | Sys_error msg ->
+      eprintf "Error: %s\n" msg;
+      exit 1
+  | e ->
+      eprintf "Unexpected error: %s\n" (Printexc.to_string e);
+      exit 1
 
 let () = main ()
