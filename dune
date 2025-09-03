@@ -1,9 +1,3 @@
-(executable
- (name main)
- ;; (public_name graded-typing) ;
- (libraries graded_types qcheck-core qcheck-runner)
- (modules main))
-
 (rule
  (alias runtest)
  (action
