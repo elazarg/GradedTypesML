@@ -3,7 +3,7 @@
 open Types
 
 (** Check if t1 is a subtype of t2 *)
-let rec subtype t1 t2 = 
+let subtype t1 t2 =
   match (t1, t2) with
   (* Rule (grade): X^i ≤ Any^i *)
   | (Base (_, i), Any j) when grade_eq i j -> true
@@ -25,18 +25,7 @@ let rec subtype t1 t2 =
 
 (** Coerce to base type - the ceil operator from Section 3.2 *)
 let coerce_to_base b t =
-  (* Find least X-supertype of t *)
-  let rec find_grade g =
-    let candidate = Base (b, g) in
-    if subtype t candidate then
-      candidate
-    else
-      match g with
-      | Finite n when n < 100 -> find_grade (Finite (n + 1))  (* arbitrary bound *)
-      | _ -> Base (b, Inf)  (* fallback *)
-  in
   match t with
-  | Base (b', g) when b = b' -> t  (* already correct base *)
+  | Base (b', _) when b = b' -> t
   | Base (_, g) -> Base (b, succ_grade g)  (* different base *)
   | Any g -> Base (b, succ_grade g)  (* downcast from Any *)
-  
