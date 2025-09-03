@@ -23,12 +23,9 @@ let subtype t1 t2 =
   (* Base(b1, g1) <= Base(b2, g2) iff b1=b2 and g1<=g2 *)
   | (Base (b1, g1), Base (b2, g2)) -> b1 = b2 && grade_leq g1 g2
 
-  (* No other subtyping *)
-  | _ -> false
-
 (** Coerce to base type - the ceil operator from Section 3.2 *)
 let coerce_to_base b t =
   match t with
-  | Base (b', g) when b = b' -> t
+  | Base (b', _) when b = b' -> t
   | Base (_, g) -> Base (b, succ_grade g)
   | Any g -> Base (b, succ_grade g)
