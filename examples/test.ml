@@ -3,6 +3,23 @@ open Graded_types
 open Types
 open QCheck
 
+let pp_type = function
+  | Base (Int, Finite n) -> Printf.sprintf "Int^%d" n
+  | Base (String, Finite n) -> Printf.sprintf "String^%d" n
+  | Base (Bool, Finite n) -> Printf.sprintf "Bool^%d" n
+  | Base (Int, Bot) -> "Int^⊥"
+  | Base (String, Bot) -> "String^⊥"
+  | Base (Bool, Bot) -> "Bool^⊥"
+  | Base (Int, Inf) -> "Int^∞"
+  | Base (String, Inf) -> "String^∞"
+  | Base (Bool, Inf) -> "Bool^∞"
+  | Any (Finite n) -> Printf.sprintf "Any^%d" n
+  | Any Bot -> "Any^⊥"
+  | Any Inf -> "Any^∞"
+
+let pp_pair (t1, t2) = 
+  Printf.sprintf "(%s, %s)" (pp_type t1) (pp_type t2)
+
 (** Generators *)
 let gen_base = Gen.oneof [
   Gen.return Int;
@@ -38,14 +55,16 @@ let prop_subtype_refl =
   Test.make ~name:"subtype reflexive" arb_type
     (fun t -> Subtype.subtype t t)
 
-(* Subtyping is antisymmetric *)
+(* Update the test *)
 let prop_subtype_antisym =
-  Test.make ~name:"subtype antisymmetric" arb_pair_type
+  Test.make ~name:"subtype antisymmetric" 
+    ~print:pp_pair
+    arb_pair_type
     (fun (t1, t2) ->
       if Subtype.subtype t1 t2 && Subtype.subtype t2 t1
       then type_eq t1 t2
       else true)
-
+      
 (* Join is commutative *)
 let prop_join_comm =
   Test.make ~name:"join commutative" arb_pair_type
