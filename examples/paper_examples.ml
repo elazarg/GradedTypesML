@@ -1,7 +1,9 @@
 (** Examples from Section 5 of the paper *)
 
+open Graded_types
 open Ast
 open Interp
+open Types
 
 (** Example 1: literal assignment *)
 let ex1 = Assign ("x", Lit (IntVal 5))
@@ -47,4 +49,3 @@ let run_all () =
   test_ex2 ();
   test_ex3 ();
   print_endline "All examples passed!"
-  
