@@ -13,8 +13,8 @@ let subtype t1 t2 =
   (* Base(b, g1) <= Any(g2) iff g1 <= g2. This covers Inf via grade_leq *)
   | (Base (_, g1), Any g2) -> grade_leq g1 g2
 
-  (* Any(g1) <= Base(b, g2) iff succ(g1) <= g2. This covers Bot via grade_leq *)
-  | (Any g1, Base (_, g2)) -> grade_leq (succ_grade g1) g2
+  (* Any(g1) <= Base(b, g2) iff succ(g1) <= g2. This covers Bot, but not Inf *)
+  | (Any g1, Base (_, g2)) when g1 <> Inf -> grade_leq (succ_grade g1) g2
 
   (* Base(b1, g1) <= Base(b2, g2) iff b1=b2 and g1<=g2 *)
   | (Base (b1, g1), Base (b2, g2)) -> b1 = b2 && grade_leq g1 g2
