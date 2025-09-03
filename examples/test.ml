@@ -97,9 +97,10 @@ let run_tests () =
   print_endline "\n--- Running Paper Examples ---";
   Paper_examples.run_all ();
 
-  if List.for_all ((=) 0) property_results then
+  if property_results = 0 then
     exit 0
   else
     exit 1
 
 let () = run_tests ()
+
