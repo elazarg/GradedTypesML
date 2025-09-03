@@ -6,10 +6,9 @@ build:
 	dune build
 
 test: build
-	dune exec graded-typing -- -test
+	dune test
 
-examples: build
-	dune exec graded-typing -- -examples
+examples: test
 
 run: build
 	@echo "Example: (if b (:= x 1) (:= x \"hello\"))" > /tmp/test.gt
@@ -27,7 +26,7 @@ install:
 	opam install dune qcheck
 
 format:
-	ocamlformat -i *.ml
+	ocamlformat -i src/*.ml examples/*.ml
 
 doc:
 	dune build @doc
