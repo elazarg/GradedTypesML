@@ -27,7 +27,7 @@ let gen_type =
 (** Arbitraries for QCheck *)
 let arb_type = QCheck.make gen_type
 let arb_pair_type = QCheck.make (Gen.pair gen_type gen_type)
-let arb_triple_type = QCheck.make (Gen.triple gen_type gen_type)
+let arb_triple_type = QCheck.make (Gen.triple gen_type gen_type gen_type)
 let arb_pair_finite_grade = QCheck.make (Gen.pair gen_finite_grade gen_finite_grade)
 
 
