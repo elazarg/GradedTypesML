@@ -1,7 +1,2 @@
-(rule
- (alias runtest)
- (action
-  (run %{exe:test.exe})))
-
 (subdir src)
 (subdir examples)
