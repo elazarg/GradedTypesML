@@ -3,22 +3,25 @@ open Graded_types
 open Types
 open QCheck
 
-let pp_type = function
-  | Base (Int, Finite n) -> Printf.sprintf "Int^%d" n
-  | Base (String, Finite n) -> Printf.sprintf "String^%d" n
-  | Base (Bool, Finite n) -> Printf.sprintf "Bool^%d" n
-  | Base (Int, Bot) -> "Int^⊥"
-  | Base (String, Bot) -> "String^⊥"
-  | Base (Bool, Bot) -> "Bool^⊥"
-  | Base (Int, Inf) -> "Int^∞"
-  | Base (String, Inf) -> "String^∞"
-  | Base (Bool, Inf) -> "Bool^∞"
-  | Any (Finite n) -> Printf.sprintf "Any^%d" n
-  | Any Bot -> "Any^⊥"
-  | Any Inf -> "Any^∞"
+let pp_grade = function
+  | Bot -> "⊥"
+  | Finite n -> string_of_int n
+  | Inf -> "∞"
 
-let pp_pair (t1, t2) = 
+let pp_type = function
+  | Base (Int, g) -> "Int^" ^ pp_grade g
+  | Base (String, g) -> "String^" ^ pp_grade g
+  | Base (Bool, g) -> "Bool^" ^ pp_grade g
+  | Any g -> "Any^" ^ pp_grade g
+
+let pp_pair (t1, t2) =
   Printf.sprintf "(%s, %s)" (pp_type t1) (pp_type t2)
+
+let pp_triple (t1, t2, t3) =
+  Printf.sprintf "(%s, %s, %s)" (pp_type t1) (pp_type t2) (pp_type t3)
+
+let pp_grade_pair (g1, g2) =
+  Printf.sprintf "(%s, %s)" (pp_grade g1) (pp_grade g2)
 
 (** Generators *)
 let gen_base = Gen.oneof [
@@ -35,17 +38,17 @@ let gen_grade = Gen.oneof [
   Gen.return Inf;
 ]
 
-let gen_type = 
+let gen_type =
   Gen.oneof [
     Gen.map2 (fun b g -> Base (b, g)) gen_base gen_grade;
     Gen.map (fun g -> Any g) gen_grade;
   ]
 
 (** Arbitraries for QCheck *)
-let arb_type = QCheck.make gen_type
-let arb_pair_type = QCheck.make (Gen.pair gen_type gen_type)
-let arb_triple_type = QCheck.make (Gen.triple gen_type gen_type gen_type)
-let arb_pair_finite_grade = QCheck.make (Gen.pair gen_finite_grade gen_finite_grade)
+let arb_type = QCheck.make ~print:pp_type gen_type
+let arb_pair_type = QCheck.make ~print:pp_pair (Gen.pair gen_type gen_type)
+let arb_triple_type = QCheck.make ~print:pp_triple (Gen.triple gen_type gen_type gen_type)
+let arb_pair_finite_grade = QCheck.make ~print:pp_grade_pair (Gen.pair gen_finite_grade gen_finite_grade)
 
 
 (** Properties *)
@@ -57,14 +60,13 @@ let prop_subtype_refl =
 
 (* Update the test *)
 let prop_subtype_antisym =
-  Test.make ~name:"subtype antisymmetric" 
-    ~print:pp_pair
+  Test.make ~name:"subtype antisymmetric"
     arb_pair_type
     (fun (t1, t2) ->
       if Subtype.subtype t1 t2 && Subtype.subtype t2 t1
       then type_eq t1 t2
       else true)
-      
+
 (* Join is commutative *)
 let prop_join_comm =
   Test.make ~name:"join commutative" arb_pair_type
@@ -75,7 +77,7 @@ let prop_join_comm =
 let prop_join_assoc =
   Test.make ~name:"join associative" arb_triple_type
     (fun (t1, t2, t3) ->
-      type_eq 
+      type_eq
         (Join.join (Join.join t1 t2) t3)
         (Join.join t1 (Join.join t2 t3)))
 
