@@ -44,6 +44,7 @@ let analyze_basic stmt =
 (** Run analysis with ghost state *)
 let analyze_ghost stmt =
   let open Interp_ghost in
+  let open Ghost in (* This brings the AugEnv module into scope *)
   let env = AugEnv.empty in
   if !verbose then printf "Initial: %s\n" (AugEnv.pp env);
   let env' = transform_ghost env stmt in
