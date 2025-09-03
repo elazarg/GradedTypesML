@@ -24,17 +24,23 @@ let gen_type =
     Gen.map (fun g -> Any g) gen_grade;
   ]
 
+(** Arbitraries for QCheck *)
+let arb_type = QCheck.make gen_type
+let arb_pair_type = QCheck.make (Gen.pair gen_type gen_type)
+let arb_triple_type = QCheck.make (Gen.triple gen_type gen_type)
+let arb_pair_finite_grade = QCheck.make (Gen.pair gen_finite_grade gen_finite_grade)
+
+
 (** Properties *)
 
 (* Subtyping is reflexive *)
 let prop_subtype_refl =
-  Test.make ~name:"subtype reflexive" gen_type
+  Test.make ~name:"subtype reflexive" arb_type
     (fun t -> Subtype.subtype t t)
 
 (* Subtyping is antisymmetric *)
 let prop_subtype_antisym =
-  Test.make ~name:"subtype antisymmetric" 
-    (Gen.pair gen_type gen_type)
+  Test.make ~name:"subtype antisymmetric" arb_pair_type
     (fun (t1, t2) ->
       if Subtype.subtype t1 t2 && Subtype.subtype t2 t1
       then type_eq t1 t2
@@ -42,15 +48,13 @@ let prop_subtype_antisym =
 
 (* Join is commutative *)
 let prop_join_comm =
-  Test.make ~name:"join commutative"
-    (Gen.pair gen_type gen_type)
+  Test.make ~name:"join commutative" arb_pair_type
     (fun (t1, t2) ->
       type_eq (Join.join t1 t2) (Join.join t2 t1))
 
 (* Join is associative *)
 let prop_join_assoc =
-  Test.make ~name:"join associative"
-    (Gen.triple gen_type gen_type gen_type)
+  Test.make ~name:"join associative" arb_triple_type
     (fun (t1, t2, t3) ->
       type_eq 
         (Join.join (Join.join t1 t2) t3)
@@ -58,21 +62,19 @@ let prop_join_assoc =
 
 (* Join is idempotent *)
 let prop_join_idemp =
-  Test.make ~name:"join idempotent" gen_type
+  Test.make ~name:"join idempotent" arb_type
     (fun t -> type_eq (Join.join t t) t)
 
 (* Join is least upper bound *)
 let prop_join_lub =
-  Test.make ~name:"join is LUB"
-    (Gen.pair gen_type gen_type)
+  Test.make ~name:"join is LUB" arb_pair_type
     (fun (t1, t2) ->
       let j = Join.join t1 t2 in
       Subtype.subtype t1 j && Subtype.subtype t2 j)
 
 (* Grade monotonicity *)
 let prop_grade_monotone =
-  Test.make ~name:"grade monotone"
-    (Gen.pair gen_finite_grade gen_finite_grade)
+  Test.make ~name:"grade monotone" arb_pair_finite_grade
     (fun (g1, g2) ->
       if grade_leq g1 g2 then
         Subtype.subtype (Any g1) (Any g2)
