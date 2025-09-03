@@ -1,0 +1,14 @@
+(executable
+ (public_name graded-typing)
+ (name main)
+ (libraries qcheck-core qcheck-runner))
+
+(library
+ (name graded_types)
+ (modules types subtype join ast env interp 
+          fixpoint ghost interp_ghost parser))
+
+(test
+ (name test)
+ (libraries graded_types qcheck-core qcheck-runner))
+ 
