@@ -2,23 +2,25 @@
 
 open Types
 
-module Env = Map.Make(String)
+module M = Map.Make(String)
 
-type t = graded_type Env.t
+type t = graded_type M.t
 
-let empty = Env.empty
+let empty = M.empty
 
 let lookup x env = 
-  try Env.find x env
+  try M.find x env
   with Not_found -> Any Bot  (* uninitialized variables *)
 
-let update x t env = Env.add x t env
+let update x t env = M.add x t env
+
+let map = M.map
 
 (** Pointwise join of environments *)
 let join env1 env2 =
   let keys = 
-    Env.fold (fun k _ acc -> k :: acc) env1 [] @
-    Env.fold (fun k _ acc -> k :: acc) env2 [] in
+    M.fold (fun k _ acc -> k :: acc) env1 [] @
+    M.fold (fun k _ acc -> k :: acc) env2 [] in
   let keys = List.sort_uniq String.compare keys in
   List.fold_left (fun env k ->
     let t1 = lookup k env1 in
@@ -28,11 +30,11 @@ let join env1 env2 =
 
 (** Environment equality *)
 let equal env1 env2 =
-  Env.equal type_eq env1 env2
+  M.equal type_eq env1 env2
 
 (** Pretty printing *)
 let pp env =
-  Env.fold (fun k v acc ->
+  M.fold (fun k v acc ->
     acc ^ k ^ ": " ^ 
     (match v with
      | Base (Int, Finite n) -> "Int^" ^ string_of_int n
@@ -43,4 +45,3 @@ let pp env =
      | Any Inf -> "Any^∞"
      | _ -> "?") ^ ", "
   ) env "{ " ^ " }"
-  
