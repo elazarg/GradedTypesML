@@ -4,9 +4,10 @@
  (libraries graded_types qcheck-core qcheck-runner)
  (modules main))
 
-(alias
- (name runtest)
- (action (run %{exe:test.exe})))
+(rule
+ (alias runtest)
+ (action
+  (run %{exe:test.exe})))
 
 (subdir src)
 (subdir examples)
