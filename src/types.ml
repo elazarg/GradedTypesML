@@ -47,4 +47,18 @@ let type_eq t1 t2 = match (t1, t2) with
   | (Base (b1, g1), Base (b2, g2)) -> b1 = b2 && grade_eq g1 g2
   | (Any g1, Any g2) -> grade_eq g1 g2
   | _ -> false
-  
+
+(** Pretty printing *)
+let pp_base = function
+  | Int -> "Int"
+  | String -> "String"
+  | Bool -> "Bool"
+
+let pp_grade = function
+  | Bot -> "⊥"
+  | Finite n -> string_of_int n
+  | Inf -> "∞"
+
+let pp_type = function
+  | Base (b, g) -> pp_base b ^ "^" ^ pp_grade g
+  | Any g -> "Any^" ^ pp_grade g

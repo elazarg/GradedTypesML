@@ -83,17 +83,9 @@ module AugEnv = struct
     
   let pp env =
     M.fold (fun k (v,g) acc ->
-      let type_str = match v with
-        | Base (Int, Finite n) -> "Int^" ^ string_of_int n
-        | Base (String, Finite n) -> "String^" ^ string_of_int n
-        | Base (Bool, Finite n) -> "Bool^" ^ string_of_int n
-        | Any (Finite n) -> "Any^" ^ string_of_int n
-        | Any Bot -> "Any^⊥"
-        | Any Inf -> "Any^∞"
-        | _ -> "?" in
-      let ghost_str = 
+      let ghost_str =
         if SiteSet.is_empty g.culprits then ""
         else " " ^ pp_ghost g in
-      acc ^ k ^ ": " ^ type_str ^ ghost_str ^ ", "
+      acc ^ k ^ ": " ^ Types.pp_type v ^ ghost_str ^ ", "
     ) env "{ " ^ " }"
 end

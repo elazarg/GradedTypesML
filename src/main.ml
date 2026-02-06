@@ -5,8 +5,9 @@ open Printf
 
 let usage = "Usage: graded-typing [options] <file>"
 
-type mode = 
-  | Basic      (* Basic analysis *)
+type mode =
+  | Basic      (* Basic graded analysis *)
+  | Gradual    (* Gradual typing (collapsed graded) *)
   | Ghost      (* With ghost state *)
 
 let mode = ref Basic
@@ -14,8 +15,10 @@ let verbose = ref false
 let input_file = ref ""
 
 let spec = [
-  ("-ghost", Arg.Unit (fun () -> mode := Ghost), 
+  ("-ghost", Arg.Unit (fun () -> mode := Ghost),
    "Enable ghost state tracking");
+  ("-gradual", Arg.Unit (fun () -> mode := Gradual),
+   "Use gradual typing (collapsed grades)");
   ("-v", Arg.Set verbose, "Verbose output");
 ]
 
@@ -39,6 +42,15 @@ let analyze_basic stmt =
   if !verbose then printf "Initial: %s\n" (Env.pp env);
   let env' = transform env stmt in
   printf "Final: %s\n" (Env.pp env');
+  env'
+
+(** Run gradual analysis *)
+let analyze_gradual stmt =
+  let open Interp_gradual in
+  let env = Env.empty in
+  if !verbose then printf "Initial: %s\n" (Env.pp env);
+  let env' = transform env stmt in
+  printf "Final (gradual): %s\n" (Env.pp env');
   env'
 
 (** Run analysis with ghost state *)
@@ -68,6 +80,7 @@ let main () =
     
     match !mode with
     | Basic -> analyze_basic stmt |> ignore
+    | Gradual -> analyze_gradual stmt |> ignore
     | Ghost -> analyze_ghost stmt |> ignore
     
   with

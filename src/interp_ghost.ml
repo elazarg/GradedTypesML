@@ -7,35 +7,47 @@ open Ghost
 let site_counter = ref 0
 let fresh_site () = incr site_counter; !site_counter
 
+(** Coercion cost: 0 if the type already has the target base, 1 otherwise *)
+let coercion_cost b = function
+  | Base (b', _) when b = b' -> 0
+  | _ -> 1
+
+(** Select the best augmented interpretation(s) from (aug_type, cost) pairs.
+    Prefer the fewest costly coercions; join ties with ghost tracking. *)
+let best_interp_ghost site candidates =
+  let min_cost = List.fold_left (fun acc (_, c) -> min acc c) max_int candidates in
+  let best = List.filter (fun (_, c) -> c = min_cost) candidates in
+  match best with
+  | [] -> failwith "best_interp_ghost: empty candidates"
+  | [(at, _)] -> at
+  | _ ->
+      List.fold_left
+        (fun acc (at, _) -> join_with_ghost site acc at)
+        (fst (List.hd best)) (List.tl best)
+
 (** Type expressions with ghost state *)
 let rec type_expr_ghost env = function
   | Lit (IntVal _) -> augment (Base (Int, Finite 0))
   | Lit (StringVal _) -> augment (Base (String, Finite 0))
   | Lit (BoolVal _) -> augment (Base (Bool, Finite 0))
-  
+
   | Var x -> AugEnv.lookup x env
-  
+
   | Binop (Plus, e1, e2) ->
       let site = fresh_site () in
       let at1 = type_expr_ghost env e1 in
       let at2 = type_expr_ghost env e2 in
-      (* Try both interpretations *)
-      let try_int =
-        let at1' = coerce_with_ghost site Int at1 in
-        let at2' = coerce_with_ghost site Int at2 in
+      let try_interp b =
+        let at1' = coerce_with_ghost site b at1 in
+        let at2' = coerce_with_ghost site b at2 in
         let (t1', g1) = at1' in
         let (t2', g2) = at2' in
-        (Base (Int, max_grade (grade_of t1') (grade_of t2')),
-         union_ghost g1 g2) in
-      let try_string =
-        let at1' = coerce_with_ghost site String at1 in
-        let at2' = coerce_with_ghost site String at2 in
-        let (t1', g1) = at1' in
-        let (t2', g2) = at2' in
-        (Base (String, max_grade (grade_of t1') (grade_of t2')),
-         union_ghost g1 g2) in
-      join_with_ghost site try_int try_string
-  
+        let result = (Base (b, max_grade (grade_of t1') (grade_of t2')),
+                      union_ghost g1 g2) in
+        let cost = coercion_cost b (fst at1) + coercion_cost b (fst at2) in
+        (result, cost) in
+      best_interp_ghost site [try_interp Int; try_interp String]
+
   | Binop (And, e1, e2) ->
       let site = fresh_site () in
       let at1 = type_expr_ghost env e1 in
@@ -46,7 +58,7 @@ let rec type_expr_ghost env = function
       let (t2', g2) = at2' in
       (Base (Bool, max_grade (grade_of t1') (grade_of t2')),
        union_ghost g1 g2)
-  
+
   | Binop (Eq, e1, e2) ->
       let site = fresh_site () in
       let at1 = type_expr_ghost env e1 in
@@ -56,12 +68,11 @@ let rec type_expr_ghost env = function
         let at2' = coerce_with_ghost site b at2 in
         let (t1', g1) = at1' in
         let (t2', g2) = at2' in
-        (Base (Bool, max_grade (grade_of t1') (grade_of t2')),
-         union_ghost g1 g2) in
-      let r1 = try_base Int in
-      let r2 = try_base String in
-      let r3 = try_base Bool in
-      join_with_ghost site (join_with_ghost site r1 r2) r3
+        let result = (Base (Bool, max_grade (grade_of t1') (grade_of t2')),
+                      union_ghost g1 g2) in
+        let cost = coercion_cost b (fst at1) + coercion_cost b (fst at2) in
+        (result, cost) in
+      best_interp_ghost site [try_base Int; try_base String; try_base Bool]
   
   | Not e ->
       let site = fresh_site () in

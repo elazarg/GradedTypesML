@@ -2,3 +2,8 @@
  (name test)
  (libraries graded_types qcheck-core qcheck)
  (modules test paper_examples))
+
+(executable
+ (name experiments)
+ (libraries graded_types)
+ (modules experiments))

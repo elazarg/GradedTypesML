@@ -1,7 +1,7 @@
 (library
  (name graded_types)
  ;; (public_name graded-types)
- (modules types subtype join ast env interp 
+ (modules types subtype join ast env interp_common interp interp_gradual
           fixpoint ghost interp_ghost parser))
 
 (executable

@@ -3,16 +3,8 @@ open Graded_types
 open Types
 open QCheck
 
-let pp_grade = function
-  | Bot -> "⊥"
-  | Finite n -> string_of_int n
-  | Inf -> "∞"
-
-let pp_type = function
-  | Base (Int, g) -> "Int^" ^ pp_grade g
-  | Base (String, g) -> "String^" ^ pp_grade g
-  | Base (Bool, g) -> "Bool^" ^ pp_grade g
-  | Any g -> "Any^" ^ pp_grade g
+let pp_grade = Types.pp_grade
+let pp_type = Types.pp_type
 
 let pp_pair (t1, t2) =
   Printf.sprintf "(%s, %s)" (pp_type t1) (pp_type t2)

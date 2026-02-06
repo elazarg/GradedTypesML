@@ -35,13 +35,5 @@ let equal env1 env2 =
 (** Pretty printing *)
 let pp env =
   M.fold (fun k v acc ->
-    acc ^ k ^ ": " ^ 
-    (match v with
-     | Base (Int, Finite n) -> "Int^" ^ string_of_int n
-     | Base (String, Finite n) -> "String^" ^ string_of_int n
-     | Base (Bool, Finite n) -> "Bool^" ^ string_of_int n
-     | Any (Finite n) -> "Any^" ^ string_of_int n
-     | Any Bot -> "Any^⊥"
-     | Any Inf -> "Any^∞"
-     | _ -> "?") ^ ", "
+    acc ^ k ^ ": " ^ Types.pp_type v ^ ", "
   ) env "{ " ^ " }"
